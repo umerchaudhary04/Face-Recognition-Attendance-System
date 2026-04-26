@@ -63,7 +63,7 @@ Before running this project, ensure you have the following installed on your sys
 <img src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(31).png">
 
 ### Automatic Attendance Filling UI
-<imag src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(02).JPG">
+<img src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(02).JPG">
 
 ### Manually Attendance Filling UI
 <img src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(35).JPG">
