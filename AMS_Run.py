@@ -31,7 +31,7 @@ def create_error_window(message):
     Button(ec, text='OK', command=ec.destroy, fg="black", bg="lawn green", width=9, height=1, font=('times', 15, ' bold ')).place(x=90, y=50)
 
 # ==========================================
-# MANUALLY FILL ATTENDANCE (Original Logic)
+# MANUALLY FILL ATTENDANCE (CSV + MYSQL DATABASE)
 # ==========================================
 def manually_fill():
     sb = tk.Toplevel() 
@@ -41,17 +41,22 @@ def manually_fill():
 
     def fill_attendance():
         ts = time.time()
-        Date = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d')
+        Date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
         timeStamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
         Hour, Minute, Second = timeStamp.split(":")
         
         subb = SUB_ENTRY.get()
-        DB_table_name = str(subb + "_" + Date + "_Time_" + Hour + "_" + Minute + "_" + Second)
+        
+        # MySQL ke liye Date format theek karna (Dashes allowed nahi hote table name mein)
+        Date_DB = Date.replace('-', '_')
+        DB_table_name = str(subb + "_" + Date_DB + "_Time_" + Hour + "_" + Minute + "_" + Second)
 
+        import pymysql
         try:
+            # MySQL Database se connection
             connection = pymysql.connect(host='localhost', user='root', password='', db='manually_fill_attendance')
             cursor = connection.cursor()
-            sql = "CREATE TABLE " + DB_table_name + """
+            sql = "CREATE TABLE IF NOT EXISTS " + DB_table_name + """
                             (ID INT NOT NULL AUTO_INCREMENT,
                              ENROLLMENT varchar(100) NOT NULL,
                              NAME VARCHAR(50) NOT NULL,
@@ -60,7 +65,7 @@ def manually_fill():
                                  PRIMARY KEY (ID));"""
             cursor.execute(sql)
         except Exception as ex:
-            print(ex)
+            print("Database Connection Error:", ex)
 
         if subb == '':
             create_error_window('Please enter your subject name!!!')
@@ -95,15 +100,35 @@ def manually_fill():
                     create_error_window('Please enter Student & Enrollment!!!')
                 else:
                     time_str = datetime.datetime.fromtimestamp(time.time()).strftime('%H:%M:%S')
-                    Insert_data = "INSERT INTO " + DB_table_name + " (ID,ENROLLMENT,NAME,DATE,TIME) VALUES (0, %s, %s, %s,%s)"
-                    VALUES = (str(ENROLLMENT), str(STUDENT), str(Date), str(time_str))
+                    
+                    # 1. Save to MySQL Database
                     try:
+                        Insert_data = "INSERT INTO " + DB_table_name + " (ID,ENROLLMENT,NAME,DATE,TIME) VALUES (0, %s, %s, %s,%s)"
+                        VALUES = (str(ENROLLMENT), str(STUDENT), str(Date), str(time_str))
                         cursor.execute(Insert_data, VALUES)
                         connection.commit()
                     except Exception as e:
-                        print(e)
-                    ENR_ENTRY.delete(0, END)
-                    STUDENT_ENTRY.delete(0, END)
+                        print("MySQL Insert Error:", e)
+
+                    # 2. Save to CSV Folder
+                    import os
+                    import csv
+                    folder_path = os.path.join("Attendance", "Manually Attendance")
+                    if not os.path.exists(folder_path):
+                        os.makedirs(folder_path)
+                        
+                    csv_filename = os.path.join(folder_path, f"{subb}_{Date}.csv")
+                    file_exists = os.path.isfile(csv_filename)
+                    
+                    with open(csv_filename, 'a+', newline='') as csvFile:
+                        writer = csv.writer(csvFile)
+                        if not file_exists:
+                            writer.writerow(['Enrollment', 'Name', 'Date', 'Time'])
+                        writer.writerow([ENROLLMENT, STUDENT, Date, time_str])
+
+                    ENR_ENTRY.delete(0, 'end')
+                    STUDENT_ENTRY.delete(0, 'end')
+                    create_error_window(f"Success! {STUDENT} Saved in Database & CSV.")
 
             DATA_SUB = tk.Button(MFW, text="Enter Data", command=enter_data_DB, fg="black", bg="SkyBlue1", width=20, height=2, font=('times', 15, ' bold '))
             DATA_SUB.place(x=170, y=300)
@@ -204,7 +229,7 @@ def trainimg_logic():
     Notification.configure(text="AI Model Trained Successfully!", bg="olive drab", width=50)
 
 # ==========================================
-# 3. NEW AUTOMATIC ATTENDANCE LOGIC
+# AUTOMATIC ATTENDANCE (CSV + MYSQL DATABASE)
 # ==========================================
 def subjectchoose():
     windo = tk.Toplevel()
@@ -220,6 +245,11 @@ def subjectchoose():
             create_error_window('Please enter your subject name!!!')
             return
 
+        import face_recognition
+        import pickle
+        import numpy as np
+        import pymysql
+
         try:
             with open("encodings.pkl", "rb") as f:
                 known_encodings, known_names, known_ids = pickle.load(f)
@@ -228,18 +258,15 @@ def subjectchoose():
             return
 
         cam = cv2.VideoCapture(0)
-        if not cam.isOpened():
-            Notifica.configure(text="Camera Error!", bg="red")
-            return
-
         font = cv2.FONT_HERSHEY_SIMPLEX
         col_names = ['Enrollment', 'Name', 'Date', 'Time']
         attendance = pd.DataFrame(columns=col_names)
         
-        future = time.time() + 20 # 20 seconds window
+        future = time.time() + 20 # 20 seconds detection window
 
         while True:
             ret, im = cam.read()
+            if not ret: break
             small_frame = cv2.resize(im, (0, 0), fx=0.25, fy=0.25)
             rgb_small_frame = cv2.cvtColor(small_frame, cv2.COLOR_BGR2RGB)
             
@@ -248,7 +275,6 @@ def subjectchoose():
             
             for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
                 top *= 4; right *= 4; bottom *= 4; left *= 4
-                
                 matches = face_recognition.compare_faces(known_encodings, face_encoding, tolerance=0.5)
                 name, Id = "Unknown", "Unknown"
                 
@@ -269,51 +295,59 @@ def subjectchoose():
                 cv2.putText(im, f"{Id}-{name}", (left, top - 10), font, 1, color, 2)
                 
             cv2.imshow('Filling Attendance (Press ESC to stop)', im)
-            
             if time.time() > future or (cv2.waitKey(1) & 0xFF == 27):
                 break
 
         cam.release()
         cv2.destroyAllWindows()
 
-        # Save to DB and CSV
-        attendance = attendance.drop_duplicates(['Enrollment'], keep='first')
-        ts = time.time()
-        date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
-        timeStamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
-        Hour, Minute, Second = timeStamp.split(":")
-        
-        if not os.path.exists("Attendance"): os.makedirs("Attendance")
-        fileName = f"Attendance/{sub}_{date}_{Hour}-{Minute}-{Second}.csv"
-        attendance.to_csv(fileName, index=False)
-
-        # Database insertion
-        date_for_DB = datetime.datetime.fromtimestamp(ts).strftime('%Y_%m_%d')
-        DB_Table_name = str(sub + "_" + date_for_DB + "_Time_" + Hour + "_" + Minute + "_" + Second)
-        
-        try:
-            connection = pymysql.connect(host='localhost', user='root', password='', db='Face_reco_fill')
-            cursor = connection.cursor()
-            sql = "CREATE TABLE " + DB_Table_name + """
-            (ID INT NOT NULL AUTO_INCREMENT, ENROLLMENT varchar(100) NOT NULL, NAME VARCHAR(50) NOT NULL,
-             DATE VARCHAR(20) NOT NULL, TIME VARCHAR(20) NOT NULL, PRIMARY KEY (ID));"""
-            cursor.execute(sql)
+        if not attendance.empty:
+            attendance = attendance.drop_duplicates(['Enrollment'], keep='first')
+            ts = time.time()
+            date = datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d')
+            timeStamp = datetime.datetime.fromtimestamp(ts).strftime('%H:%M:%S')
+            Hour, Minute, Second = timeStamp.split(":")
             
-            for index, row in attendance.iterrows():
-                insert_data = "INSERT INTO " + DB_Table_name + " (ID,ENROLLMENT,NAME,DATE,TIME) VALUES (0, %s, %s, %s,%s)"
-                cursor.execute(insert_data, (str(row['Enrollment']), str(row['Name']), str(row['Date']), str(row['Time'])))
-            connection.commit()
-        except Exception as e:
-            print("DB Error:", e)
+            # 1. Save to CSV
+            if not os.path.exists("Attendance"): os.makedirs("Attendance")
+            fileName = f"Attendance/{sub}_{date}_{Hour}-{Minute}-{Second}.csv"
+            attendance.to_csv(fileName, index=False)
 
-        Notifica.configure(text='Attendance Filled Successfully!', bg="Green")
+            # 2. Save to MySQL Database (face_reco_fill)
+            date_DB = date.replace('-', '_')
+            
+            # Error Fix: MySQL table name mein Space aur '&' allow nahi karta
+            # Is liye hum unhein underscore '_' se replace kar rahe hain
+            clean_sub = sub.replace(" ", "_").replace("&", "and")
+            DB_Table_name = str(clean_sub + "_" + date_DB + "_Time_" + Hour + "_" + Minute + "_" + Second)
+            
+            try:
+                # Aapki observation ke mutabiq database name lower case kar diya hai
+                connection = pymysql.connect(host='localhost', user='root', password='', db='face_reco_fill')
+                cursor = connection.cursor()
+                sql = "CREATE TABLE IF NOT EXISTS " + DB_Table_name + """
+                (ID INT NOT NULL AUTO_INCREMENT, ENROLLMENT varchar(100) NOT NULL, NAME VARCHAR(50) NOT NULL,
+                 DATE VARCHAR(20) NOT NULL, TIME VARCHAR(20) NOT NULL, PRIMARY KEY (ID));"""
+                cursor.execute(sql)
+                
+                for index, row in attendance.iterrows():
+                    insert_data = "INSERT INTO " + DB_Table_name + " (ID,ENROLLMENT,NAME,DATE,TIME) VALUES (0, %s, %s, %s,%s)"
+                    cursor.execute(insert_data, (str(row['Enrollment']), str(row['Name']), str(row['Date']), str(row['Time'])))
+                connection.commit()
+                connection.close()
+                Notifica.configure(text='Attendance Saved in DB & CSV!', bg="Green")
+            except Exception as e:
+                print("DB Error:", e)
+                Notifica.configure(text='DB Error! Check phpMyAdmin', bg="red")
+        else:
+            Notifica.configure(text='No Face Detected!', bg="orange")
 
     def thread_fill_attendance():
-        t = threading.Thread(target=fill_attendance_logic)
-        t.start()
+        import threading
+        threading.Thread(target=fill_attendance_logic).start()
 
-    sub = tk.Label(windo, text="Enter Subject : ", width=15, height=2, fg="black", bg="grey", font=('times', 15, ' bold '))
-    sub.place(x=30, y=100)
+    sub_label = tk.Label(windo, text="Enter Subject : ", width=15, height=2, fg="black", bg="grey", font=('times', 15, ' bold '))
+    sub_label.place(x=30, y=100)
     tx = tk.Entry(windo, width=20, bg="white", fg="black", font=('times', 23))
     tx.place(x=250, y=105)
     fill_a = tk.Button(windo, text="Fill Attendance", command=thread_fill_attendance, fg="white", bg="SkyBlue1", width=20, height=2, font=('times', 15, ' bold '))
