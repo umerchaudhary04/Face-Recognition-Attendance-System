@@ -1,6 +1,35 @@
 # Face-Recognition-Attendance-Management-System
-Attendance Management System based on Face Recognition using Python  and OpenCv  
+An advanced, highly accurate, and automated student attendance tracking system built using Python. This project replaces traditional manual attendance processes with a state-of-the-art Deep Learning facial recognition approach, ensuring a secure and efficient way to manage academic records.
 
+### Key Features
+
+* **Deep Learning Facial Recognition:** Upgraded from basic LBPH to the robust `face_recognition` (dlib) model for high-accuracy face detection and matching in real-time.
+* **Dual-Storage Integration:** Automatically saves attendance records simultaneously into local `.csv` files (Excel) and a **MySQL Database** to prevent data loss.
+* **Intelligent Database Handling:** Automatically sanitizes inputs (handling spaces and special characters like `&`) to create error-free dynamic SQL tables based on subject names and timestamps.
+* **Interactive GUI:** A user-friendly desktop interface built with `Tkinter` for easy navigation between taking images, training the model, and filling attendance.
+* **Manual Entry Fallback:** Includes a secure manual attendance entry module that also syncs with both CSV and MySQL seamlessly.
+
+### Tech Stack & Technologies
+
+* **Language:** Python 3.11
+* **Computer Vision & AI:** OpenCV (`cv2`), `dlib`, `face_recognition`
+* **Data Handling:** Pandas, NumPy
+* **Database:** MySQL (via XAMPP), `pymysql`
+* **GUI:** Tkinter
+
+### Prerequisites & Setup
+
+Before running this project, ensure you have the following installed on your system:
+1.  **Python 3.11** (Ensure it is added to your PATH).
+2.  **XAMPP** (For MySQL database server).
+3.  **C++ Build Tools** (Required for compiling `dlib`).
+
+### Installation Steps
+
+**1. Clone the repository:**
+```bash
+git clone [https://github.com/umerchaudhary04/Face-Recognition-Attendance-System](https://github.com/umerchaudhary04/Face-Recognition-Attendance-System)
+cd Face-Recognition-Attendance-System
 
 ### Code Requirements
 - Opencv(`pip install opencv-python`)
@@ -8,9 +37,17 @@ Attendance Management System based on Face Recognition using Python  and OpenCv
 - PIL (`pip install Pillow`)
 - Pandas(`pip install pandas`)
 
+### Database Configuration (Crucial Step):
+
+-Open XAMPP Control Panel and start Apache and MySQL.
+-Open your browser and navigate to http://localhost/phpmyadmin.
+-Create two empty databases with the exact following names:
+--manually_fill_attendance
+--face_reco_fill
+(Note: The Python script will automatically generate the required tables inside these databases).
+
 ### What steps you have to follow??
 - Download my Repository 
-- Create a `TrainingImage` folder in a project.
 - Open a `AMS_Run.py` and change the all paths with your system path
 - Run `AMS_Run.py`.
 
@@ -31,11 +68,15 @@ Attendance Management System based on Face Recognition using Python  and OpenCv
 <img src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(31).png">
 
 ### Automatic Attendance Filling UI
-<imag src="https://github.com/Pragya9ps/Face-Recognition-Attendance-System/blob/main/Screenshot%20(02).jpg">
+<imag src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(02).JPG>
 
 ### Manually Attendance Filling UI
-<img src="https://github.com/Pragya9ps/Face-Recognition-Attendance-System/blob/main/Screenshot%20(35).jpg">
+<img src="https://github.com/umerchaudhary04/Face-Recognition-Attendance-System/blob/main/Screenshot%20(35).JPG">
 
 ### Notes
 - It will require high processing power(I have 8 GB RAM)
 - Noisy image can reduce the accuracy, so quality of images should be good.
+
+### Author
+Umer Asghar (Umer Chaudhary)
+Software Engineering Student | Passionate about AI, Computer Vision, and scalable software architecture.
