@@ -34,11 +34,11 @@ Before running this project, ensure you have the following installed on your sys
 
 ### Database Configuration (Crucial Step):
 
--Open XAMPP Control Panel and start Apache and MySQL.
--Open your browser and navigate to http://localhost/phpmyadmin.
--Create two empty databases with the exact following names:
---manually_fill_attendance
---face_reco_fill
+- Open XAMPP Control Panel and start Apache and MySQL.
+- Open your browser and navigate to http://localhost/phpmyadmin.
+- Create two empty databases with the exact following names:
+- manually_fill_attendance
+- face_reco_fill
 (Note: The Python script will automatically generate the required tables inside these databases).
 
 ### What steps you have to follow??
