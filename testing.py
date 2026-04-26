@@ -8,8 +8,15 @@ faceCascade = cv2.CascadeClassifier(cascadePath)
 font = cv2.FONT_HERSHEY_SIMPLEX
 
 cam = cv2.VideoCapture(0)
+if not cam.isOpened():
+    print("Error: Could not open camera.")
+    exit()
+
 while True:
     ret, im = cam.read()
+    if not ret:
+        print("Error: Failed to grab frame.")
+        break
     gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
     faces = faceCascade.detectMultiScale(gray, 1.2, 5)
     for(x, y, w, h) in faces:
