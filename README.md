@@ -72,6 +72,6 @@ Before running this project, ensure you have the following installed on your sys
 - It will require high processing power(I have 8 GB RAM)
 - Noisy image can reduce the accuracy, so quality of images should be good.
 
-### Author
+### Author:
 Umer Asghar (Umer Chaudhary)
 Software Engineering Student | Passionate about AI, Computer Vision, and scalable software architecture.
