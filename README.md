@@ -30,6 +30,7 @@ Before running this project, ensure you have the following installed on your sys
 ```bash
 git clone [https://github.com/umerchaudhary04/Face-Recognition-Attendance-System](https://github.com/umerchaudhary04/Face-Recognition-Attendance-System)
 cd Face-Recognition-Attendance-System
+```bash
 
 ### Code Requirements
 - Opencv(`pip install opencv-python`)
