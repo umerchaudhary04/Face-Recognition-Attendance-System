@@ -22,17 +22,18 @@ An advanced, highly accurate, and automated student attendance tracking system b
 Before running this project, ensure you have the following installed on your system:
 1.  **Python 3.11** (Ensure it is added to your PATH).
 2.  **XAMPP** (For MySQL database server).
-3.  **C++ Build Tools** (Required for compiling `dlib`).
+3.  **C++ Build Tools** (Required for compiling `dlib`)
+ - MSVC v143 - VS 2022 C++ x64/x86 build tools
+ - Windows SDK (10 or 11, depending on your system)
+ - C++ CMake tools for Windows
 
 ### Installation Steps
 
-### Code Requirements
-- Opencv(`pip install opencv-python`)
-- Tkinter(Available in python)
-- PIL (`pip install Pillow`)
-- Pandas(`pip install pandas`)
+### Install required Python packages
+- Open your terminal and run:
+- `py -m pip install cmake dlib face_recognition opencv-python pandas numpy pymysql`
 
-### Database Configuration (Crucial Step):
+### Database Configuration (Crucial Step)
 
 - Open XAMPP Control Panel and start Apache and MySQL.
 - Open your browser and navigate to http://localhost/phpmyadmin.
@@ -41,9 +42,9 @@ Before running this project, ensure you have the following installed on your sys
 - face_reco_fill
 (Note: The Python script will automatically generate the required tables inside these databases).
 
-### What steps you have to follow??
-- Download my Repository 
-- Open a `AMS_Run.py` and change the all paths with your system path
+### What steps you have to follow to run the project?
+- Ensure your XAMPP MySQL server is running in the background.
+- Open your terminal in the project directory.
 - Run `AMS_Run.py`.
 
 ### Project Structure
@@ -72,6 +73,6 @@ Before running this project, ensure you have the following installed on your sys
 - It will require high processing power(I have 8 GB RAM)
 - Noisy image can reduce the accuracy, so quality of images should be good.
 
-### Author:
+### Author
 Umer Asghar (Umer Chaudhary)
 Software Engineering Student | Passionate about AI, Computer Vision, and scalable software architecture.
